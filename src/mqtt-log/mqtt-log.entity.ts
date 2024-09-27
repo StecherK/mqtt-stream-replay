@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-@Entity('mqtt_logs')  // Table name in PostgreSQL
+@Entity('mqtt_logs')  
 export class MqttLog {
   @PrimaryGeneratedColumn()
   id: number;
@@ -8,9 +8,9 @@ export class MqttLog {
   @Column()
   topic: string;
 
-  @Column('jsonb', { nullable: true }) // Store payload as JSON
+  @Column('jsonb', { nullable: true }) 
   payload: any;
 
   @CreateDateColumn({ type: 'timestamp' })
-  createdAt: Date;
+  timestamp: Date;
 }

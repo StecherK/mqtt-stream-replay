@@ -4,7 +4,7 @@ import { MqttLogService } from './mqtt-log.service';
 import { MqttLog } from './mqtt-log.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MqttLog])], // Register the MqttLog entity
+  imports: [TypeOrmModule.forFeature([MqttLog])],
   providers: [MqttLogService],
   exports: [MqttLogService],
 })

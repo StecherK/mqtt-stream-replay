@@ -1,18 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MqttLogService } from './mqtt-log.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { MqttLog } from './mqtt-log.entity';
+import { Repository } from 'typeorm';
 
 describe('MqttLogService', () => {
-  let service: MqttLogService;
+    let service: MqttLogService;
+    let repository: Repository<MqttLog>;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [MqttLogService],
-    }).compile();
+    const mockRepository = {
+        save: jest.fn().mockResolvedValue(true), 
+        find: jest.fn().mockResolvedValue([]), 
+    };
 
-    service = module.get<MqttLogService>(MqttLogService);
-  });
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                MqttLogService,
+                {
+                    provide: getRepositoryToken(MqttLog),
+                    useValue: mockRepository, 
+                },
+            ],
+        }).compile();
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+        service = module.get<MqttLogService>(MqttLogService);
+        repository = module.get<Repository<MqttLog>>(getRepositoryToken(MqttLog));
+    });
+
+    it('should be defined', () => {
+        expect(service).toBeDefined();
+    });
 });
