@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  replaydb:
+    image: postgres:9.6
+    container_name: replaydb
+    environment:
+      POSTGRES_PASSWORD: default        
+      POSTGRES_USER: kst               
+      POSTGRES_DB: mqttreplaylog       
+    ports:
+      - "5433:5432"                   
+    volumes:
+      - ./replay_data:/var/lib/postgresql/data 
+
+volumes:
+  replay_data:                             

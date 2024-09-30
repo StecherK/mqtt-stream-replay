@@ -1,16 +1,30 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('mqtt_logs')  
+
+@Entity('replaylogs')
+
 export class MqttLog {
+
   @PrimaryGeneratedColumn()
+
   id: number;
 
-  @Column()
-  topic: string;
 
-  @Column('jsonb', { nullable: true }) 
+
+  @Column('json')
+
   payload: any;
 
-  @CreateDateColumn({ type: 'timestamp' })
+
+
+  @Column()
+
+  topic: string;
+
+
+
+  @Column()
+
   timestamp: Date;
+
 }

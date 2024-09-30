@@ -1,16 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { MqttLogModule } from './mqtt-log/mqtt-log.module';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { MqttPublisherService } from './mqtt-publisher/mqtt-publisher.service';
-import { MqttPublisherModule } from './mqtt-publisher/mqtt-publisher.module';
-import { AppController } from './app.controller';
+import { MqttLogModule } from './mqtt-log/mqtt-log.module'; 
 
 @Module({
   imports: [
-    ConfigModule.forRoot(), 
+    ConfigModule.forRoot({ isGlobal: true }), 
 
+   
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -18,23 +15,11 @@ import { AppController } from './app.controller';
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      autoLoadEntities: true, 
-      synchronize: true,       //! not recommended for production
+      autoLoadEntities: true,  
+      synchronize: true,      
     }),
 
     MqttLogModule, 
-
-    ClientsModule.register([
-      {
-        name: 'MQTT_SERVICE',
-        transport: Transport.MQTT,
-        options: {
-          url: 'mqtt://localhost:1883', 
-        },
-      },
-    ]), MqttPublisherModule,
   ],
-  controllers: [],
-  providers: [MqttPublisherService],
 })
 export class AppModule {}

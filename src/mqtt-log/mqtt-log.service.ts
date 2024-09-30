@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Timestamp } from 'typeorm';
 import { MqttLog } from './mqtt-log.entity';
-import { MessagePattern } from '@nestjs/microservices';
+import { log, time } from 'console';
 
 @Injectable()
-export class MqttLogService {
+export class MqttLogService implements OnModuleInit {
   private readonly logger = new Logger(MqttLogService.name);
 
   constructor(
@@ -13,18 +13,49 @@ export class MqttLogService {
     private mqttLogRepository: Repository<MqttLog>,
   ) {}
 
-  // This function will log incoming MQTT messages into the PostgreSQL database
-  async logMqttMessage(topic: string, payload: any): Promise<MqttLog> {
-    this.logger.log(`Received MQTT message on topic: ${topic}`);
-    const logEntry = this.mqttLogRepository.create({ topic, payload });
-    return this.mqttLogRepository.save(logEntry);
+  onModuleInit() {
+    this.initializeSubscriptions();
   }
 
-  // MQTT listener for a specific topic
-  @MessagePattern('your/mqtt/topic')  // Replace with your actual topic
-  async handleMqttMessage(payload: any) {
-    const topic = 'your/mqtt/topic';  // You can extract this dynamically if needed
-    this.logger.log(`Handling message for topic: ${topic}`);
-    await this.logMqttMessage(topic, payload);
+  private initializeSubscriptions() {
+    const mqttClient = require('mqtt').connect(process.env.MQTT_URL);
+    mqttClient.subscribe('#', (err) => {
+      if (err) {
+        this.logger.error(`Failed to subscribe: ${err.message}`);
+      } else {
+        this.logger.debug('Successfully subscribed');
+      }
+    });
+
+    mqttClient.on('message', async (topic: string, payload: Buffer) => {
+      const message = JSON.parse(payload.toString());
+      this.logger.debug(`Received message for topic "${topic}": ${JSON.stringify(message)}`);
+      await this.logMqttMessage(topic, message);
+    });
   }
+
+  public async logMqttMessage(topic: string, payload: any): Promise<void> {
+    let timestamp: Date;
+    let parsedDate;
+    if (payload.timestamp) {
+        parsedDate = Date.parse(payload.timestamp);
+    } else if(payload.starttime) {
+        parsedDate = Date.parse(payload.starttime);
+    } 
+    if (isNaN(parsedDate)) {
+      timestamp = new Date();
+      this.logger.debug(`Invalid timestamp provided: ${timestamp}`);
+    }else{
+    timestamp = new Date(parsedDate);
+    this.logger.debug(`Timestamp provided: ${timestamp}`);
+    }
+
+    const logEntry = this.mqttLogRepository.create({ topic, payload: payload, timestamp });
+    try {
+      await this.mqttLogRepository.save(logEntry);
+      this.logger.debug(`Message logged successfully for topic "${topic}"`);
+    } catch (error) {
+      this.logger.error(`Failed to save log: ${error.message}`);
+    }
+  } 
 }
