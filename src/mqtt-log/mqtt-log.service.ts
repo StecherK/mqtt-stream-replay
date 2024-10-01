@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Timestamp } from 'typeorm';
 import { MqttLog } from './mqtt-log.entity';
-import { log, time } from 'console';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class MqttLogService implements OnModuleInit {
@@ -34,6 +34,8 @@ export class MqttLogService implements OnModuleInit {
     });
   }
 
+ 
+
   public async logMqttMessage(topic: string, payload: any): Promise<void> {
     let timestamp: Date;
     let parsedDate;
@@ -50,7 +52,20 @@ export class MqttLogService implements OnModuleInit {
     this.logger.debug(`Timestamp provided: ${timestamp}`);
     }
 
-    const logEntry = this.mqttLogRepository.create({ topic, payload: payload, timestamp });
+       // Generate a hash of the payload
+       const payloadHash = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+
+       // Check for existing log entry using the hash instead of JSON
+       const existingLog = await this.mqttLogRepository.findOne({
+         where: { topic, payloadHash, timestamp },
+       });
+     
+       if (existingLog) {
+         this.logger.debug(`Duplicate message detected for topic "${topic}" with the same payload and timestamp`);
+         return; // Exit early if message is a duplicate
+       }
+
+    const logEntry = this.mqttLogRepository.create({ topic, payload: payload, timestamp, payloadHash });
     try {
       await this.mqttLogRepository.save(logEntry);
       this.logger.debug(`Message logged successfully for topic "${topic}"`);

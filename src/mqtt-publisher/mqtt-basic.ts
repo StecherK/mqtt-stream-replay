@@ -5,10 +5,10 @@ const mqtt = require('mqtt');
 const brokerUrl = 'mqtt://localhost:1883';
 const client = mqtt.connect(brokerUrl);
 
-const topic = 'Data123';
+const topic = 'topic1';
 const message = JSON.stringify({
-  data: 'freq: 50.1 temp: 45deg. something else',
-  timestamp: "2021-09-01T12:00:00Z"
+  data: 'message type 3 data',
+  timestamp: "2024-09-30T10:42:38Z"
 });
 
 client.on('connect', () => {

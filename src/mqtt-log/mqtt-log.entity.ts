@@ -1,5 +1,4 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('replaylogs')
 
@@ -26,5 +25,10 @@ export class MqttLog {
   @Column()
 
   timestamp: Date;
+
+
+  @Column({ nullable: true })
+
+  payloadHash: string;
 
 }
